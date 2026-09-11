@@ -4276,6 +4276,23 @@ $CONTENT
         const store = getConfigStorage_ACU();
         store.setItem(getProfileTemplateKey_ACU(code), String(templateStr || ''));
     }
+    /**
+     * 删除非默认隔离标签对应的设置与表格模板。
+     *
+     * 空标识代表默认 Profile，必须保留；调用方只应传入待退役的旧隔离码。
+     */
+    function deleteProfileFromStorage_ACU(code) {
+        const normalizedCode = normalizeIsolationCode_ACU(code);
+        if (!normalizedCode) {
+            throw new Error('不能删除默认 Profile。');
+        }
+        const store = getConfigStorage_ACU();
+        if (!store || typeof store.removeItem !== 'function') {
+            throw new Error('当前配置存储不支持删除 Profile。');
+        }
+        store.removeItem(getProfileSettingsKey_ACU(normalizedCode));
+        store.removeItem(getProfileTemplateKey_ACU(normalizedCode));
+    }
     function saveCurrentProfileTemplate_ACU(templateStr, settings) {
         const tpl = templateStr !== undefined ? templateStr : TABLE_TEMPLATE_ACU;
         const code = normalizeIsolationCode_ACU(settings?.dataIsolationCode || '');
@@ -177440,7 +177457,7 @@ Expected function or array of functions, received type ${typeof value}.`
     const _hoisted_37$1 = { class: "acu-v2-continuation-materials__badge" };
     const _hoisted_38$1 = { class: "acu-v2-continuation-materials__badge" };
     const _hoisted_39$1 = { class: "acu-v2-continuation-materials__badge" };
-    const _hoisted_40 = { class: "acu-v2-continuation-materials__card-body" };
+    const _hoisted_40$1 = { class: "acu-v2-continuation-materials__card-body" };
     const _hoisted_41 = { class: "acu-v2-continuation-materials__list" };
     const _hoisted_42 = {
 	key: 1,
@@ -178014,7 +178031,7 @@ Expected function or array of functions, received type ${typeof value}.`
 											]),
 											createBaseVNode(
 												"p",
-												_hoisted_40,
+												_hoisted_40$1,
 												"阶段目标：" + toDisplayString(revision.outline.goal),
 												1
 												/* TEXT */
@@ -182694,8 +182711,8 @@ Expected function or array of functions, received type ${typeof value}.`
         }
     });
 
-    injectSfcStyle("\n.acu-v2-vector-index-page[data-v-91f12786] {\n  min-height: 100%;\n  min-width: 0;\n  padding: 20px;\n  display: flex;\n  flex-direction: column;\n  gap: 18px;\n}\n.acu-v2-vector-index-page__panel-stack[data-v-91f12786] {\n  min-width: 0;\n  display: flex;\n  flex-direction: column;\n  gap: 16px;\n}\n.acu-v2-vector-index-page__number-grid[data-v-91f12786] {\n  display: grid;\n  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));\n  gap: 10px;\n}\n.acu-v2-vector-api-form[data-v-91f12786] {\n  display: flex;\n  flex-direction: column;\n  gap: 14px;\n}\n.acu-v2-vector-api-form__section[data-v-91f12786] {\n  min-width: 0;\n  margin: 0;\n  padding: 0 0 18px;\n  border: 0;\n  border-bottom: 1px solid\n    color-mix(in srgb, var(--acu-text-3) 16%, transparent);\n  border-radius: 0;\n  background: transparent;\n  display: flex;\n  flex-direction: column;\n  gap: 12px;\n}\n.acu-v2-vector-api-form__section[data-v-91f12786]:last-of-type {\n  padding-bottom: 0;\n  border-bottom: 0;\n}\n.acu-v2-vector-api-form__section + .acu-v2-vector-api-form__section[data-v-91f12786] {\n  padding-top: 2px;\n}\n.acu-v2-vector-api-form__section legend[data-v-91f12786] {\n  width: 100%;\n  margin: 0 0 2px;\n  padding: 0;\n  color: var(--acu-text-1);\n  font-size: var(--acu-font-size-body, 12px);\n  font-weight: 700;\n  line-height: 1.35;\n}\n.acu-v2-vector-api-form__actions[data-v-91f12786] {\n  display: flex;\n  justify-content: flex-end;\n  gap: 8px;\n  padding-top: 12px;\n  margin-top: 4px;\n}\n.acu-v2-vector-index-page__hint[data-v-91f12786] {\n  margin: 0;\n  font-size: var(--acu-font-size-body, 12px);\n  color: var(--acu-text-3);\n  line-height: 1.55;\n}\n.acu-v2-vector-index-page__maintenance-spacer[data-v-91f12786] {\n  flex: 1 1 auto;\n  min-height: 0;\n}\n.acu-v2-vector-index-page__actions[data-v-91f12786] {\n  display: flex;\n  justify-content: flex-end;\n  flex-wrap: wrap;\n  gap: 8px;\n  padding-top: 12px;\n  margin-top: 4px;\n}\n.acu-v2-vector-index-page__prompt-actions[data-v-91f12786] {\n  display: flex;\n  justify-content: flex-end;\n  gap: 8px;\n  padding-top: 12px;\n  margin-top: 4px;\n}\n@media (max-width: 860px) {\n.acu-v2-vector-index-page[data-v-91f12786] {\n    padding: 14px;\n}\n}\n.acu-v2-vector-api-form__instruction-textarea[data-v-91f12786] {\n  width: 100%;\n  min-height: 60px;\n  padding: 6px 8px;\n  border: 1px solid color-mix(in srgb, var(--acu-text-3) 24%, transparent);\n  border-radius: 4px;\n  background: var(--acu-bg-2, transparent);\n  color: var(--acu-text-1);\n  font-size: var(--acu-font-size-body, 12px);\n  line-height: 1.5;\n  resize: vertical;\n}\n.acu-v2-vector-index-page__scope-allowlist[data-v-91f12786] {\n  width: 100%;\n  min-height: 72px;\n  padding: 6px 8px;\n  border: 1px solid color-mix(in srgb, var(--acu-text-3) 24%, transparent);\n  border-radius: 4px;\n  background: var(--acu-bg-2, transparent);\n  color: var(--acu-text-1);\n  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;\n  font-size: var(--acu-font-size-small, 11px);\n  line-height: 1.5;\n  resize: vertical;\n}\n", "src/presentation-v2/pages/VectorIndexPage.vue#style-0-91f12786");
-    var VectorIndexPage_vue_vue_type_style_index_0_scoped_91f12786_lang = null;
+    injectSfcStyle("\n.acu-v2-vector-index-page[data-v-365c914b] {\r\n  min-height: 100%;\r\n  min-width: 0;\r\n  padding: 20px;\r\n  display: flex;\r\n  flex-direction: column;\r\n  gap: 18px;\n}\n.acu-v2-vector-index-page__panel-stack[data-v-365c914b] {\r\n  min-width: 0;\r\n  display: flex;\r\n  flex-direction: column;\r\n  gap: 16px;\n}\n.acu-v2-vector-index-page__number-grid[data-v-365c914b] {\r\n  display: grid;\r\n  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));\r\n  gap: 10px;\n}\n.acu-v2-vector-api-form[data-v-365c914b] {\r\n  display: flex;\r\n  flex-direction: column;\r\n  gap: 14px;\n}\n.acu-v2-vector-api-form__section[data-v-365c914b] {\r\n  min-width: 0;\r\n  margin: 0;\r\n  padding: 0 0 18px;\r\n  border: 0;\r\n  border-bottom: 1px solid\r\n    color-mix(in srgb, var(--acu-text-3) 16%, transparent);\r\n  border-radius: 0;\r\n  background: transparent;\r\n  display: flex;\r\n  flex-direction: column;\r\n  gap: 12px;\n}\n.acu-v2-vector-api-form__section[data-v-365c914b]:last-of-type {\r\n  padding-bottom: 0;\r\n  border-bottom: 0;\n}\n.acu-v2-vector-api-form__section + .acu-v2-vector-api-form__section[data-v-365c914b] {\r\n  padding-top: 2px;\n}\n.acu-v2-vector-api-form__section legend[data-v-365c914b] {\r\n  width: 100%;\r\n  margin: 0 0 2px;\r\n  padding: 0;\r\n  color: var(--acu-text-1);\r\n  font-size: var(--acu-font-size-body, 12px);\r\n  font-weight: 700;\r\n  line-height: 1.35;\n}\n.acu-v2-vector-api-form__actions[data-v-365c914b] {\r\n  display: flex;\r\n  justify-content: flex-end;\r\n  gap: 8px;\r\n  padding-top: 12px;\r\n  margin-top: 4px;\n}\n.acu-v2-vector-index-page__hint[data-v-365c914b] {\r\n  margin: 0;\r\n  font-size: var(--acu-font-size-body, 12px);\r\n  color: var(--acu-text-3);\r\n  line-height: 1.55;\n}\n.acu-v2-vector-index-page__maintenance-spacer[data-v-365c914b] {\r\n  flex: 1 1 auto;\r\n  min-height: 0;\n}\n.acu-v2-vector-index-page__actions[data-v-365c914b] {\r\n  display: flex;\r\n  justify-content: flex-end;\r\n  flex-wrap: wrap;\r\n  gap: 8px;\r\n  padding-top: 12px;\r\n  margin-top: 4px;\n}\n.acu-v2-vector-index-page__prompt-actions[data-v-365c914b] {\r\n  display: flex;\r\n  justify-content: flex-end;\r\n  gap: 8px;\r\n  padding-top: 12px;\r\n  margin-top: 4px;\n}\n@media (max-width: 860px) {\n.acu-v2-vector-index-page[data-v-365c914b] {\r\n    padding: 14px;\n}\n}\n.acu-v2-vector-api-form__instruction-textarea[data-v-365c914b] {\r\n  width: 100%;\r\n  min-height: 60px;\r\n  padding: 6px 8px;\r\n  border: 1px solid color-mix(in srgb, var(--acu-text-3) 24%, transparent);\r\n  border-radius: 4px;\r\n  background: var(--acu-bg-2, transparent);\r\n  color: var(--acu-text-1);\r\n  font-size: var(--acu-font-size-body, 12px);\r\n  line-height: 1.5;\r\n  resize: vertical;\n}\n.acu-v2-vector-index-page__scope-allowlist[data-v-365c914b] {\r\n  width: 100%;\r\n  min-height: 72px;\r\n  padding: 6px 8px;\r\n  border: 1px solid color-mix(in srgb, var(--acu-text-3) 24%, transparent);\r\n  border-radius: 4px;\r\n  background: var(--acu-bg-2, transparent);\r\n  color: var(--acu-text-1);\r\n  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;\r\n  font-size: var(--acu-font-size-small, 11px);\r\n  line-height: 1.5;\r\n  resize: vertical;\n}\r\n", "src/presentation-v2/pages/VectorIndexPage.vue#style-0-365c914b");
+    var VectorIndexPage_vue_vue_type_style_index_0_scoped_365c914b_lang = null;
 
     const _hoisted_1$h = { class: "acu-v2-vector-index-page" };
     const _hoisted_2$g = { class: "acu-v2-vector-index-page__panel-stack" };
@@ -183307,7 +183324,7 @@ Expected function or array of functions, received type ${typeof value}.`
 		])
 	]);
     }
-    var VectorIndexPage = /*#__PURE__*/ _export_sfc(_sfc_main$h, [["render", _sfc_render$h], ["__scopeId", "data-v-91f12786"]]);
+    var VectorIndexPage = /*#__PURE__*/ _export_sfc(_sfc_main$h, [["render", _sfc_render$h], ["__scopeId", "data-v-365c914b"]]);
 
     const dataMgmtCopy = {
         panels: {
@@ -183399,6 +183416,61 @@ Expected function or array of functions, received type ${typeof value}.`
                 clearInterval(timer);
         });
         return { health, busy, isVisible, refresh, reload };
+    }
+
+    /**
+     * 退役隔离标签的全局 Profile 清理编排。
+     *
+     * 只清理全局隔离登记及对应 Profile（设置/表格模板），不删除聊天正文，也不改写
+     * 各聊天消息中已经持久化的历史表格数据。
+     */
+    function errorMessage$1(error) {
+        return error instanceof Error ? error.message : String(error || '未知错误');
+    }
+    /**
+     * 清理全部旧隔离标签。
+     *
+     * 先切回默认槽，再逐个删除 Profile。单个删除失败时保留该标签的历史登记，
+     * 便于用户重试；成功项则从登记中移除。
+     */
+    async function cleanupLegacyIsolationProfiles_ACU() {
+        const activeCode = normalizeIsolationCode_ACU(settings_ACU?.dataIsolationCode || globalMeta_ACU?.activeIsolationCode || '');
+        const switchedToDefault = !!activeCode;
+        if (switchedToDefault) {
+            await switchIsolationProfile_ACU('');
+        }
+        const codes = [...new Set([activeCode, ...getDataIsolationHistory_ACU()]
+                .map(code => normalizeIsolationCode_ACU(code))
+                .filter(Boolean))];
+        if (codes.length === 0) {
+            return { removedCodes: [], failedCodes: [], switchedToDefault };
+        }
+        const removedCodes = [];
+        const failedCodes = [];
+        for (const code of codes) {
+            try {
+                deleteProfileFromStorage_ACU(code);
+                removedCodes.push(code);
+            }
+            catch (error) {
+                const message = errorMessage$1(error);
+                failedCodes.push({ code, error: message });
+                logWarn_ACU(`[旧隔离清理] 删除 Profile 失败: ${code}`, error);
+            }
+        }
+        globalMeta_ACU.activeIsolationCode = '';
+        globalMeta_ACU.isolationCodeList = failedCodes.map(item => item.code);
+        settings_ACU.dataIsolationCode = '';
+        settings_ACU.dataIsolationEnabled = false;
+        settings_ACU.dataIsolationHistory = [];
+        if (!saveGlobalMeta_ACU()) {
+            throw new Error('旧隔离标签登记保存失败，请检查存储状态后重试。');
+        }
+        const saveResult = saveSettings_ACU();
+        if (!saveResult.saved) {
+            throw new Error(saveResult.warning || saveResult.error || '默认设置保存失败。');
+        }
+        return { removedCodes, failedCodes, switchedToDefault };
     }
 
     /**
@@ -184247,6 +184319,13 @@ Expected function or array of functions, received type ${typeof value}.`
         });
         const isolationModeLabel = computed(() => (activeIsolationCode.value ? '已启用隔离' : '未启用隔离'));
         const isolationHistoryOptions = computed(() => isolationHistory.value.map(code => ({ value: code, label: code })));
+        const legacyIsolationCodes = computed(() => {
+            const codes = new Set(isolationHistory.value);
+            if (activeIsolationCode.value)
+                codes.add(activeIsolationCode.value);
+            return [...codes];
+        });
+        const legacyIsolationCount = computed(() => legacyIsolationCodes.value.length);
         const rangeLabel = computed(() => {
             const start = normalizeFloorValue(deleteRange.startFloor);
             const end = normalizeFloorValue(deleteRange.endFloor);
@@ -184362,6 +184441,33 @@ Expected function or array of functions, received type ${typeof value}.`
                 logError_ACU('[ACU-V2] removeHistory failed', e);
                 message.value = null;
                 toast.error('移除历史标识失败，详情见运行日志。');
+            }
+            finally {
+                busyAction.value = '';
+            }
+        }
+        async function cleanupLegacyIsolationProfiles() {
+            if (busyAction.value)
+                return;
+            busyAction.value = 'cleanup-legacy-isolation';
+            try {
+                const result = await cleanupLegacyIsolationProfiles_ACU();
+                refresh();
+                message.value = null;
+                if (result.failedCodes.length > 0) {
+                    toast.warning(`已清理 ${result.removedCodes.length} 个旧隔离标签；${result.failedCodes.length} 个删除失败，已保留登记，可重试。`);
+                }
+                else if (result.removedCodes.length === 0) {
+                    toast.info('没有发现可清理的旧隔离标签。');
+                }
+                else {
+                    toast.success(`已清理 ${result.removedCodes.length} 个旧隔离标签，并切换到默认数据。`);
+                }
+            }
+            catch (e) {
+                logError_ACU('[ACU-V2] cleanupLegacyIsolationProfiles failed', e);
+                message.value = null;
+                toast.error('清理旧隔离标签失败，详情见运行日志。');
             }
             finally {
                 busyAction.value = '';
@@ -184891,6 +184997,8 @@ Expected function or array of functions, received type ${typeof value}.`
             v2RecoverySummary,
             v2IsolationDiagnostics,
             isolationHistoryOptions,
+            legacyIsolationCodes,
+            legacyIsolationCount,
             currentIsolationLabel,
             isolationModeLabel,
             deleteRange,
@@ -184908,6 +185016,7 @@ Expected function or array of functions, received type ${typeof value}.`
             getCheckpointTargetStorageMode,
             applyIsolation,
             removeHistory,
+            cleanupLegacyIsolationProfiles,
             deleteCurrentIsolationEntries,
             importCombinedSettings,
             exportCombinedSettings,
@@ -185116,6 +185225,28 @@ Expected function or array of functions, received type ${typeof value}.`
                     return;
                 void flow.deleteLocalData("all");
             }
+            async function onCleanupLegacyIsolationProfiles() {
+                if (runtimeDiagnostic.busy.value)
+                    return;
+                const codes = flow.legacyIsolationCodes.value;
+                const codeText = codes.length > 0 ? `：${codes.join("、")}` : "";
+                const confirmed = await dialogStore.confirm({
+                    title: "全局旧隔离标签清理",
+                    message: `将清理全部 ${codes.length} 个旧隔离标签${codeText}。\n` +
+                        "· 如有当前激活标识，会切回默认数据；\n" +
+                        "· 删除这些标签对应的全局设置与表格模板；\n" +
+                        "· 不会删除聊天正文，也不会改写各聊天里已保存的历史表格数据；\n" +
+                        "· 若单个标签删除失败，会保留登记供重试。\n" +
+                        "此操作不可恢复。确认继续？",
+                    confirmLabel: "清理旧隔离标签",
+                    confirmVariant: "danger",
+                });
+                if (!confirmed)
+                    return;
+                if (runtimeDiagnostic.busy.value)
+                    return;
+                await flow.cleanupLegacyIsolationProfiles();
+            }
             async function onCommitMixedStorageDecision(action) {
                 if (runtimeDiagnostic.busy.value)
                     return;
@@ -185240,14 +185371,14 @@ Expected function or array of functions, received type ${typeof value}.`
             }
             onMounted(refreshAll);
             watch(useChatChangedTick(), refreshAll);
-            const __returned__ = { SHOW_LEGACY_DATA_MGMT_UI, resetDefaultsCleanupOptions, dialogStore, flow, runtimeDiagnostic, historyExpanded, isolationCodeHint, historyMetaLabel, selectHistory, onApplyIsolation, onRemoveHistory, onDeleteCurrentIsolationEntries, onOverrideLatestLayer, onImportTableCheckpoint, onDeleteLocalData, onCommitMixedStorageDecision, onCommitV2Recovery, onReloadSqliteRuntime, onResetAllDefaults, refreshAll, AcuButton, AcuDisclosureGroup, AcuFileButton, AcuFormRow, AcuIconButton, AcuInput, AcuMessage, AcuPanel, AcuPanelGrid, AcuCheckbox, get dataMgmtCopy() { return dataMgmtCopy; } };
+            const __returned__ = { SHOW_LEGACY_DATA_MGMT_UI, resetDefaultsCleanupOptions, dialogStore, flow, runtimeDiagnostic, historyExpanded, isolationCodeHint, historyMetaLabel, selectHistory, onApplyIsolation, onRemoveHistory, onDeleteCurrentIsolationEntries, onOverrideLatestLayer, onImportTableCheckpoint, onDeleteLocalData, onCleanupLegacyIsolationProfiles, onCommitMixedStorageDecision, onCommitV2Recovery, onReloadSqliteRuntime, onResetAllDefaults, refreshAll, AcuButton, AcuDisclosureGroup, AcuFileButton, AcuFormRow, AcuIconButton, AcuInput, AcuMessage, AcuPanel, AcuPanelGrid, AcuCheckbox, get dataMgmtCopy() { return dataMgmtCopy; } };
             Object.defineProperty(__returned__, '__isScriptSetup', { enumerable: false, value: true });
             return __returned__;
         }
     });
 
-    injectSfcStyle("\n.acu-v2-data-mgmt-page[data-v-0f8a0cec] {\r\n  min-height: 100%;\r\n  min-width: 0;\r\n  padding: 20px;\r\n  display: flex;\r\n  flex-direction: column;\r\n  gap: 18px;\n}\n.acu-v2-data-mgmt-page__panel-stack[data-v-0f8a0cec] {\r\n  min-width: 0;\r\n  display: flex;\r\n  flex-direction: column;\r\n  gap: 16px;\n}\n.acu-v2-data-mgmt-page__form-grid[data-v-0f8a0cec] {\r\n  display: grid;\r\n  grid-template-columns: repeat(2, minmax(0, 1fr));\r\n  gap: 12px;\n}\n.acu-v2-data-mgmt-page__form-stack[data-v-0f8a0cec] {\r\n  display: flex;\r\n  flex-direction: column;\r\n  gap: 12px;\n}\n.acu-v2-data-mgmt-page__meta[data-v-0f8a0cec] {\r\n  margin: 0;\r\n  color: var(--acu-text-3);\r\n  font-size: var(--acu-font-size-body, 12px);\r\n  line-height: 1.55;\n}\n.acu-v2-data-mgmt-page__cleanup-section[data-v-0f8a0cec] {\r\n  display: flex;\r\n  flex-direction: column;\r\n  gap: 12px;\r\n  min-width: 0;\n}\n.acu-v2-data-mgmt-page__sheet-filter[data-v-0f8a0cec] {\r\n  display: flex;\r\n  flex-direction: column;\r\n  gap: 8px;\r\n  padding: 10px 12px;\r\n  border: 1px solid var(--acu-border);\r\n  border-radius: var(--acu-radius-md, 8px);\r\n  background: var(--acu-bg-1);\n}\n.acu-v2-data-mgmt-page__sheet-filter-head[data-v-0f8a0cec] {\r\n  display: flex;\r\n  align-items: center;\r\n  justify-content: space-between;\r\n  gap: 8px;\n}\n.acu-v2-data-mgmt-page__sheet-filter-title[data-v-0f8a0cec] {\r\n  color: var(--acu-text-2);\r\n  font-size: var(--acu-font-size-body, 12px);\r\n  font-weight: 600;\n}\n.acu-v2-data-mgmt-page__sheet-filter-clear[data-v-0f8a0cec] {\r\n  padding: 0;\r\n  border: 0;\r\n  background: transparent;\r\n  color: var(--acu-accent);\r\n  font: inherit;\r\n  font-size: var(--acu-font-size-body, 12px);\r\n  cursor: pointer;\n}\n.acu-v2-data-mgmt-page__sheet-filter-clear[data-v-0f8a0cec]:disabled {\r\n  opacity: 0.5;\r\n  cursor: not-allowed;\n}\n.acu-v2-data-mgmt-page__sheet-filter-list[data-v-0f8a0cec] {\r\n  display: grid;\r\n  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));\r\n  gap: 6px 12px;\n}\n.acu-v2-data-mgmt-page__cleanup-section\r\n  + .acu-v2-data-mgmt-page__cleanup-section[data-v-0f8a0cec] {\r\n  margin-top: 4px;\r\n  padding-top: 14px;\r\n  border-top: 1px solid var(--acu-border);\n}\n.acu-v2-data-mgmt-page__section-title[data-v-0f8a0cec] {\r\n  margin: 0;\r\n  color: var(--acu-text-1);\r\n  font-size: var(--acu-font-size-body-lg, 13px);\r\n  font-weight: 600;\r\n  line-height: 1.35;\n}\n.acu-v2-data-mgmt-page__history[data-v-0f8a0cec] {\r\n  border: 1px solid var(--acu-border);\r\n  border-radius: var(--acu-radius-sm);\r\n  background: color-mix(in srgb, var(--acu-bg-2) 72%, transparent);\n}\n.acu-v2-data-mgmt-page__history[data-v-0f8a0cec] .acu-disclosure-group__header {\r\n  border-radius: var(--acu-radius-sm);\n}\n.acu-v2-data-mgmt-page__history-list[data-v-0f8a0cec] {\r\n  display: flex;\r\n  flex-direction: column;\r\n  gap: 6px;\n}\n.acu-v2-data-mgmt-page__history-item[data-v-0f8a0cec] {\r\n  display: grid;\r\n  grid-template-columns: minmax(0, 1fr) auto;\r\n  gap: 8px;\r\n  align-items: center;\n}\n.acu-v2-data-mgmt-page__history-fill[data-v-0f8a0cec] {\r\n  width: 100%;\r\n  min-width: 0;\r\n  justify-content: flex-start;\n}\n.acu-v2-data-mgmt-page__history-code[data-v-0f8a0cec] {\r\n  flex: 1;\r\n  min-width: 0;\r\n  overflow: hidden;\r\n  text-align: left;\r\n  text-overflow: ellipsis;\r\n  white-space: nowrap;\r\n  font-family: var(--acu-font-mono, Consolas, Menlo, monospace);\n}\n.acu-v2-data-mgmt-page__history-current[data-v-0f8a0cec] {\r\n  flex-shrink: 0;\r\n  color: var(--acu-text-3);\r\n  font-size: var(--acu-font-size-caption, 11px);\n}\n.acu-v2-data-mgmt-page__history-empty[data-v-0f8a0cec] {\r\n  margin: 0;\r\n  color: var(--acu-text-3);\r\n  font-size: var(--acu-font-size-caption, 11px);\r\n  line-height: 1.5;\n}\n.acu-v2-data-mgmt-page__actions[data-v-0f8a0cec] {\r\n  display: flex;\r\n  flex-wrap: wrap;\r\n  gap: 8px;\r\n  justify-content: flex-end;\n}\n.acu-v2-data-mgmt-page__actions[data-v-0f8a0cec],\r\n.acu-v2-data-mgmt-page__command-grid[data-v-0f8a0cec] {\r\n  padding-top: 12px;\r\n  margin-top: 4px;\n}\n.acu-v2-data-mgmt-page__command-grid[data-v-0f8a0cec] {\r\n  display: grid;\r\n  grid-template-columns: repeat(2, minmax(0, 1fr));\r\n  gap: 8px;\n}\n.acu-v2-data-mgmt-page__command-grid--cleanup[data-v-0f8a0cec] {\r\n  margin-top: 12px;\n}\n.acu-v2-data-mgmt-page__checkpoint-section[data-v-0f8a0cec] {\r\n  margin-top: 16px;\r\n  padding-top: 16px;\r\n  border-top: 1px solid var(--acu-border, rgba(255, 255, 255, 0.12));\n}\n.acu-v2-data-mgmt-page__runtime-health[data-v-0f8a0cec] {\r\n  display: grid;\r\n  grid-template-columns: repeat(2, minmax(0, 1fr));\r\n  gap: 8px;\r\n  margin: 12px 0 0;\n}\n.acu-v2-data-mgmt-page__runtime-health > div[data-v-0f8a0cec] {\r\n  min-width: 0;\r\n  padding: 8px;\r\n  border: 1px solid var(--acu-border);\r\n  border-radius: var(--acu-radius-sm);\r\n  background: color-mix(in srgb, var(--acu-bg-2) 72%, transparent);\n}\n.acu-v2-data-mgmt-page__runtime-health dt[data-v-0f8a0cec] {\r\n  color: var(--acu-text-3);\r\n  font-size: var(--acu-font-size-caption, 11px);\n}\n.acu-v2-data-mgmt-page__runtime-health dd[data-v-0f8a0cec] {\r\n  margin: 4px 0 0;\r\n  overflow-wrap: anywhere;\r\n  color: var(--acu-text-1);\r\n  font-family: var(--acu-font-mono, Consolas, Menlo, monospace);\n}\n.acu-v2-data-mgmt-page__checkpoint-actions[data-v-0f8a0cec] {\r\n  display: grid;\r\n  grid-template-columns: repeat(2, minmax(0, 1fr));\r\n  gap: 8px;\r\n  margin-top: 10px;\n}\n.acu-v2-data-mgmt-page__checkpoint-actions[data-v-0f8a0cec] .acu-file-button,\r\n.acu-v2-data-mgmt-page__checkpoint-actions[data-v-0f8a0cec] .acu-btn { width: 100%; min-width: 0;\n}\n.acu-v2-data-mgmt-page__command-grid[data-v-0f8a0cec] .acu-file-button,\r\n.acu-v2-data-mgmt-page__command-grid[data-v-0f8a0cec] .acu-btn {\r\n  width: 100%;\r\n  min-width: 0;\n}\n@media (max-width: 860px) {\n.acu-v2-data-mgmt-page[data-v-0f8a0cec] {\r\n    padding: 14px;\n}\n.acu-v2-data-mgmt-page__form-grid[data-v-0f8a0cec] {\r\n    grid-template-columns: 1fr;\n}\n}\n@media (max-width: 560px) {\n.acu-v2-data-mgmt-page__command-grid[data-v-0f8a0cec] {\r\n    grid-template-columns: 1fr;\n}\n.acu-v2-data-mgmt-page__checkpoint-actions[data-v-0f8a0cec] {\r\n    grid-template-columns: 1fr;\n}\n.acu-v2-data-mgmt-page__runtime-health[data-v-0f8a0cec] {\r\n    grid-template-columns: 1fr;\n}\n}\r\n", "src/presentation-v2/pages/DataMgmtPage.vue#style-0-0f8a0cec");
-    var DataMgmtPage_vue_vue_type_style_index_0_scoped_0f8a0cec_lang = null;
+    injectSfcStyle("\n.acu-v2-data-mgmt-page[data-v-d5f44946] {\r\n  min-height: 100%;\r\n  min-width: 0;\r\n  padding: 20px;\r\n  display: flex;\r\n  flex-direction: column;\r\n  gap: 18px;\n}\n.acu-v2-data-mgmt-page__panel-stack[data-v-d5f44946] {\r\n  min-width: 0;\r\n  display: flex;\r\n  flex-direction: column;\r\n  gap: 16px;\n}\n.acu-v2-data-mgmt-page__form-grid[data-v-d5f44946] {\r\n  display: grid;\r\n  grid-template-columns: repeat(2, minmax(0, 1fr));\r\n  gap: 12px;\n}\n.acu-v2-data-mgmt-page__form-stack[data-v-d5f44946] {\r\n  display: flex;\r\n  flex-direction: column;\r\n  gap: 12px;\n}\n.acu-v2-data-mgmt-page__meta[data-v-d5f44946] {\r\n  margin: 0;\r\n  color: var(--acu-text-3);\r\n  font-size: var(--acu-font-size-body, 12px);\r\n  line-height: 1.55;\n}\n.acu-v2-data-mgmt-page__cleanup-section[data-v-d5f44946] {\r\n  display: flex;\r\n  flex-direction: column;\r\n  gap: 12px;\r\n  min-width: 0;\n}\n.acu-v2-data-mgmt-page__sheet-filter[data-v-d5f44946] {\r\n  display: flex;\r\n  flex-direction: column;\r\n  gap: 8px;\r\n  padding: 10px 12px;\r\n  border: 1px solid var(--acu-border);\r\n  border-radius: var(--acu-radius-md, 8px);\r\n  background: var(--acu-bg-1);\n}\n.acu-v2-data-mgmt-page__sheet-filter-head[data-v-d5f44946] {\r\n  display: flex;\r\n  align-items: center;\r\n  justify-content: space-between;\r\n  gap: 8px;\n}\n.acu-v2-data-mgmt-page__sheet-filter-title[data-v-d5f44946] {\r\n  color: var(--acu-text-2);\r\n  font-size: var(--acu-font-size-body, 12px);\r\n  font-weight: 600;\n}\n.acu-v2-data-mgmt-page__sheet-filter-clear[data-v-d5f44946] {\r\n  padding: 0;\r\n  border: 0;\r\n  background: transparent;\r\n  color: var(--acu-accent);\r\n  font: inherit;\r\n  font-size: var(--acu-font-size-body, 12px);\r\n  cursor: pointer;\n}\n.acu-v2-data-mgmt-page__sheet-filter-clear[data-v-d5f44946]:disabled {\r\n  opacity: 0.5;\r\n  cursor: not-allowed;\n}\n.acu-v2-data-mgmt-page__sheet-filter-list[data-v-d5f44946] {\r\n  display: grid;\r\n  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));\r\n  gap: 6px 12px;\n}\n.acu-v2-data-mgmt-page__cleanup-section\r\n  + .acu-v2-data-mgmt-page__cleanup-section[data-v-d5f44946] {\r\n  margin-top: 4px;\r\n  padding-top: 14px;\r\n  border-top: 1px solid var(--acu-border);\n}\n.acu-v2-data-mgmt-page__section-title[data-v-d5f44946] {\r\n  margin: 0;\r\n  color: var(--acu-text-1);\r\n  font-size: var(--acu-font-size-body-lg, 13px);\r\n  font-weight: 600;\r\n  line-height: 1.35;\n}\n.acu-v2-data-mgmt-page__history[data-v-d5f44946] {\r\n  border: 1px solid var(--acu-border);\r\n  border-radius: var(--acu-radius-sm);\r\n  background: color-mix(in srgb, var(--acu-bg-2) 72%, transparent);\n}\n.acu-v2-data-mgmt-page__history[data-v-d5f44946] .acu-disclosure-group__header {\r\n  border-radius: var(--acu-radius-sm);\n}\n.acu-v2-data-mgmt-page__history-list[data-v-d5f44946] {\r\n  display: flex;\r\n  flex-direction: column;\r\n  gap: 6px;\n}\n.acu-v2-data-mgmt-page__history-item[data-v-d5f44946] {\r\n  display: grid;\r\n  grid-template-columns: minmax(0, 1fr) auto;\r\n  gap: 8px;\r\n  align-items: center;\n}\n.acu-v2-data-mgmt-page__history-fill[data-v-d5f44946] {\r\n  width: 100%;\r\n  min-width: 0;\r\n  justify-content: flex-start;\n}\n.acu-v2-data-mgmt-page__history-code[data-v-d5f44946] {\r\n  flex: 1;\r\n  min-width: 0;\r\n  overflow: hidden;\r\n  text-align: left;\r\n  text-overflow: ellipsis;\r\n  white-space: nowrap;\r\n  font-family: var(--acu-font-mono, Consolas, Menlo, monospace);\n}\n.acu-v2-data-mgmt-page__history-current[data-v-d5f44946] {\r\n  flex-shrink: 0;\r\n  color: var(--acu-text-3);\r\n  font-size: var(--acu-font-size-caption, 11px);\n}\n.acu-v2-data-mgmt-page__history-empty[data-v-d5f44946] {\r\n  margin: 0;\r\n  color: var(--acu-text-3);\r\n  font-size: var(--acu-font-size-caption, 11px);\r\n  line-height: 1.5;\n}\n.acu-v2-data-mgmt-page__actions[data-v-d5f44946] {\r\n  display: flex;\r\n  flex-wrap: wrap;\r\n  gap: 8px;\r\n  justify-content: flex-end;\n}\n.acu-v2-data-mgmt-page__actions[data-v-d5f44946],\r\n.acu-v2-data-mgmt-page__command-grid[data-v-d5f44946] {\r\n  padding-top: 12px;\r\n  margin-top: 4px;\n}\n.acu-v2-data-mgmt-page__command-grid[data-v-d5f44946] {\r\n  display: grid;\r\n  grid-template-columns: repeat(2, minmax(0, 1fr));\r\n  gap: 8px;\n}\n.acu-v2-data-mgmt-page__command-grid--cleanup[data-v-d5f44946] {\r\n  margin-top: 12px;\n}\n.acu-v2-data-mgmt-page__checkpoint-section[data-v-d5f44946] {\r\n  margin-top: 16px;\r\n  padding-top: 16px;\r\n  border-top: 1px solid var(--acu-border, rgba(255, 255, 255, 0.12));\n}\n.acu-v2-data-mgmt-page__runtime-health[data-v-d5f44946] {\r\n  display: grid;\r\n  grid-template-columns: repeat(2, minmax(0, 1fr));\r\n  gap: 8px;\r\n  margin: 12px 0 0;\n}\n.acu-v2-data-mgmt-page__runtime-health > div[data-v-d5f44946] {\r\n  min-width: 0;\r\n  padding: 8px;\r\n  border: 1px solid var(--acu-border);\r\n  border-radius: var(--acu-radius-sm);\r\n  background: color-mix(in srgb, var(--acu-bg-2) 72%, transparent);\n}\n.acu-v2-data-mgmt-page__runtime-health dt[data-v-d5f44946] {\r\n  color: var(--acu-text-3);\r\n  font-size: var(--acu-font-size-caption, 11px);\n}\n.acu-v2-data-mgmt-page__runtime-health dd[data-v-d5f44946] {\r\n  margin: 4px 0 0;\r\n  overflow-wrap: anywhere;\r\n  color: var(--acu-text-1);\r\n  font-family: var(--acu-font-mono, Consolas, Menlo, monospace);\n}\n.acu-v2-data-mgmt-page__checkpoint-actions[data-v-d5f44946] {\r\n  display: grid;\r\n  grid-template-columns: repeat(2, minmax(0, 1fr));\r\n  gap: 8px;\r\n  margin-top: 10px;\n}\n.acu-v2-data-mgmt-page__checkpoint-actions[data-v-d5f44946] .acu-file-button,\r\n.acu-v2-data-mgmt-page__checkpoint-actions[data-v-d5f44946] .acu-btn { width: 100%; min-width: 0;\n}\n.acu-v2-data-mgmt-page__command-grid[data-v-d5f44946] .acu-file-button,\r\n.acu-v2-data-mgmt-page__command-grid[data-v-d5f44946] .acu-btn {\r\n  width: 100%;\r\n  min-width: 0;\n}\n@media (max-width: 860px) {\n.acu-v2-data-mgmt-page[data-v-d5f44946] {\r\n    padding: 14px;\n}\n.acu-v2-data-mgmt-page__form-grid[data-v-d5f44946] {\r\n    grid-template-columns: 1fr;\n}\n}\n@media (max-width: 560px) {\n.acu-v2-data-mgmt-page__command-grid[data-v-d5f44946] {\r\n    grid-template-columns: 1fr;\n}\n.acu-v2-data-mgmt-page__checkpoint-actions[data-v-d5f44946] {\r\n    grid-template-columns: 1fr;\n}\n.acu-v2-data-mgmt-page__runtime-health[data-v-d5f44946] {\r\n    grid-template-columns: 1fr;\n}\n}\r\n", "src/presentation-v2/pages/DataMgmtPage.vue#style-0-d5f44946");
+    var DataMgmtPage_vue_vue_type_style_index_0_scoped_d5f44946_lang = null;
 
     const _hoisted_1$g = { class: "acu-v2-data-mgmt-page" };
     const _hoisted_2$f = { class: "acu-v2-data-mgmt-page__panel-stack" };
@@ -185342,6 +185473,7 @@ Expected function or array of functions, received type ${typeof value}.`
     const _hoisted_37 = { class: "acu-v2-data-mgmt-page__sheet-filter-list" };
     const _hoisted_38 = { class: "acu-v2-data-mgmt-page__meta" };
     const _hoisted_39 = { class: "acu-v2-data-mgmt-page__command-grid acu-v2-data-mgmt-page__command-grid--cleanup" };
+    const _hoisted_40 = { class: "acu-v2-data-mgmt-page__meta" };
     function _sfc_render$g(_ctx, _cache, $props, $setup, $data, $options) {
 	return openBlock(), createElementBlock("section", _hoisted_1$g, [$setup.flow.message.value ? (openBlock(), createBlock($setup["AcuMessage"], {
 		key: 0,
@@ -186089,15 +186221,36 @@ Expected function or array of functions, received type ${typeof value}.`
 							/* CACHED */
 						)])]),
 						_: 1
+					}, 8, ["disabled", "loading"]),
+					createVNode($setup["AcuButton"], {
+						block: "",
+						variant: "danger",
+						disabled: $setup.runtimeDiagnostic.busy.value || !!$setup.flow.busyAction.value,
+						loading: $setup.flow.busyAction.value === "cleanup-legacy-isolation",
+						onClick: $setup.onCleanupLegacyIsolationProfiles
+					}, {
+						default: withCtx(() => [..._cache[41] || (_cache[41] = [createTextVNode(
+							" 全局旧隔离标签清理 ",
+							-1
+							/* CACHED */
+						)])]),
+						_: 1
 					}, 8, ["disabled", "loading"])
-				])
+				]),
+				createBaseVNode(
+					"p",
+					_hoisted_40,
+					" 清理全部退役隔离标签及其全局设置/表格模板，并切回默认数据；不会删除聊天正文或各聊天已保存的历史表格数据。当前发现 " + toDisplayString($setup.flow.legacyIsolationCount.value) + " 个旧隔离标签。 ",
+					1
+					/* TEXT */
+				)
 			]),
 			_: 1
 		}, 8, ["title", "description"])])]),
 		_: 1
 	})]);
     }
-    var DataMgmtPage = /*#__PURE__*/ _export_sfc(_sfc_main$g, [["render", _sfc_render$g], ["__scopeId", "data-v-0f8a0cec"]]);
+    var DataMgmtPage = /*#__PURE__*/ _export_sfc(_sfc_main$g, [["render", _sfc_render$g], ["__scopeId", "data-v-d5f44946"]]);
 
     var _sfc_main$f = /*@__PURE__*/ defineComponent({
         __name: 'ContentReplacePresetDrawer',
