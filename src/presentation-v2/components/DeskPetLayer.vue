@@ -2,11 +2,23 @@
   <Teleport v-if="portalTarget" :to="portalTarget">
     <div class="acu-desk-pet-layer">
       <DeskPet
+        ref="pet"
         v-if="hubState.petEnabled.value"
         :busy="activity.busy.value"
         :settings-version="hubState.snapshot.value.settingsVersion"
         :appearance="hubState.petAppearance.value"
+        :menu-open="menuOpen"
         @rect="petRect = $event"
+        @menu-request="requestMenu"
+      />
+      <DeskPetActionMenu
+        ref="menu"
+        v-if="menuOpen && petRect"
+        :anchor="petRect"
+        :viewport-width="viewport.width"
+        :viewport-height="viewport.height"
+        @close="closeMenu"
+        @open-dashboard="openDashboard"
       />
       <NoticeBubble
         :slide="carousel.slide.value"
@@ -33,12 +45,15 @@
  * 桌宠与统一浮动气泡的宿主：挂在设置外壳之外、传送到宿主 body，
  * 设置面板关闭时同样可见。通知、进度任务与冷笑话都经这里的单一气泡轮播。
  */
-import { onBeforeUnmount, onMounted, ref } from "vue";
+import { nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { getAcuHostDocument, getAcuHostWindow } from "../bootstrap/host-document";
 import { useNoticeCarousel } from "../composables/useNoticeCarousel";
 import { useNoticeHubState, useTaskActivity, type DeskPetRect } from "../composables/useTaskActivity";
 import DeskPet from "./DeskPet.vue";
+import DeskPetActionMenu from "./DeskPetActionMenu.vue";
 import NoticeBubble from "./NoticeBubble.vue";
+
+const emit = defineEmits<{ (event: "openDashboard"): void }>();
 
 const hubState = useNoticeHubState();
 const activity = useTaskActivity(hubState);
@@ -47,6 +62,31 @@ const carousel = useNoticeCarousel(hubState, activity.tasks);
 const portalTarget = ref<HTMLElement | null>(null);
 const petRect = ref<DeskPetRect | null>(null);
 const viewport = ref({ width: 0, height: 0 });
+const menuOpen = ref(false);
+const pet = ref<InstanceType<typeof DeskPet> | null>(null);
+const menu = ref<InstanceType<typeof DeskPetActionMenu> | null>(null);
+
+async function requestMenu(source: "pointer" | "keyboard"): Promise<void> {
+  menuOpen.value = true;
+  if (source === "keyboard") {
+    await nextTick();
+    await menu.value?.focusAction();
+  }
+}
+
+function closeMenu(restoreFocus: boolean): void {
+  menuOpen.value = false;
+  if (restoreFocus) (pet.value?.$el as HTMLElement | undefined)?.focus();
+}
+
+function openDashboard(): void {
+  menuOpen.value = false;
+  emit("openDashboard");
+}
+
+watch(() => hubState.petEnabled.value, enabled => {
+  if (!enabled) menuOpen.value = false;
+});
 
 function readViewport(): void {
   const win = getAcuHostWindow();

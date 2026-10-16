@@ -4,9 +4,13 @@
     class="acu-desk-pet"
     :class="rootClass"
     :style="petStyle"
-    role="img"
+    role="button"
+    tabindex="0"
     :aria-label="ariaLabel"
+    :aria-haspopup="'menu'"
+    :aria-expanded="menuOpen"
     :title="titleText"
+    @keydown="onKeydown"
     @pointerdown="onPointerDown"
     @pointermove="onPointerMove"
     @pointerup="onPointerUp"
@@ -152,15 +156,22 @@ const POSE_LABELS: Record<Pose, string> = {
   knockdown: "把自己震倒了",
 };
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   busy: boolean;
   /** 设置版本：设置被加载或修改后重读已保存位置。 */
   settingsVersion: number;
   /** 外观设置的生效值：图片、尺寸与动画节奏。 */
   appearance: DeskPetAppearance_ACU;
-}>();
+  /** 动作菜单是否已显示，用于按钮语义的展开状态。 */
+  menuOpen?: boolean;
+}>(), {
+  menuOpen: false,
+});
 
-const emit = defineEmits<{ (event: "rect", rect: DeskPetRect): void }>();
+const emit = defineEmits<{
+  (event: "rect", rect: DeskPetRect): void;
+  (event: "menu-request", source: "pointer" | "keyboard"): void;
+}>();
 
 const DRAG_THRESHOLD_PX = 6;
 const EDGE_MARGIN_PX = 8;
@@ -335,9 +346,9 @@ const rootClass = computed(() => ({
   "is-still": !motion.value.enabled,
 }));
 
-const ariaLabel = computed(() => `桌宠：${showPeek.value ? "躲在边上偷看" : POSE_LABELS[pose.value]}`);
+const ariaLabel = computed(() => `桌宠：${showPeek.value ? "躲在边上偷看" : POSE_LABELS[pose.value]}，按 Enter 打开动作菜单`);
 const titleText = computed(() =>
-  showPeek.value ? "躲在边上偷看（悬停或点一下就探出来）" : `${POSE_LABELS[pose.value]}（可拖动，点一下有反应）`,
+  showPeek.value ? "躲在边上偷看（点一下显示动作菜单）" : `${POSE_LABELS[pose.value]}（点一下显示动作菜单，可拖动，连点会有反应）`,
 );
 
 function readViewport(): { width: number; height: number } {
@@ -640,6 +651,8 @@ function inRageSequence(): boolean {
 
 /** 点一下害羞，连点三下怕痒，戳太多会生气；睡着时被点会吓一跳。 */
 function onTap(): void {
+  emit("menu-request", "pointer");
+  const now = Date.now();
   if (pressWasSnoozing) {
     tapTimes = [];
     startReaction("surprised");
@@ -647,7 +660,6 @@ function onTap(): void {
   }
   // 气头上的连段不被打断。
   if (inRageSequence()) return;
-  const now = Date.now();
   tapTimes = [...tapTimes.filter(time => now - time < ANGRY_WINDOW_MS), now];
   const recent = tapTimes.filter(time => now - time < TICKLE_WINDOW_MS).length;
   if (tapTimes.length >= ANGRY_TAP_COUNT) {
@@ -667,6 +679,15 @@ function maybeWave(): void {
   if (now - lastWaveAt < motion.value.waveCooldownMs) return;
   lastWaveAt = now;
   startReaction("wave");
+}
+
+function onKeydown(event: KeyboardEvent): void {
+  if (event.key !== "Enter" && event.key !== " " && event.key !== "Spacebar") return;
+  event.preventDefault();
+  if (dragging.value) return;
+  markActive();
+  untuck();
+  emit("menu-request", "keyboard");
 }
 
 function onPointerDown(event: PointerEvent): void {
@@ -847,6 +868,11 @@ onBeforeUnmount(() => {
   -webkit-tap-highlight-color: transparent;
   pointer-events: auto;
   will-change: transform;
+}
+
+.acu-desk-pet:focus-visible {
+  outline: 2px solid #d4a93a;
+  outline-offset: 3px;
 }
 
 .acu-desk-pet.is-animated {

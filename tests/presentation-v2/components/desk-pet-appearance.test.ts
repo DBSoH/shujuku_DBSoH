@@ -17,6 +17,7 @@ vi.mock('../../../src/presentation-v2/composables/useTaskActivity', () => ({
 }));
 
 import DeskPet from '../../../src/presentation-v2/components/DeskPet.vue';
+import DeskPetActionMenu from '../../../src/presentation-v2/components/DeskPetActionMenu.vue';
 import NoticeBubble from '../../../src/presentation-v2/components/NoticeBubble.vue';
 import { useNoticeCarousel, type NoticeSlide } from '../../../src/presentation-v2/composables/useNoticeCarousel';
 import {
@@ -49,8 +50,8 @@ function petAppearance(edit: (appearance: DeskPetAppearance_ACU) => void = () =>
   return appearance;
 }
 
-function mountPet(appearance: DeskPetAppearance_ACU) {
-  const el = mountComponent(DeskPet, { busy: false, settingsVersion: 0, appearance });
+function mountPet(appearance: DeskPetAppearance_ACU, onMenuRequest: (source: 'pointer' | 'keyboard') => void = vi.fn()) {
+  const el = mountComponent(DeskPet, { busy: false, settingsVersion: 0, appearance, onMenuRequest });
   return {
     root: el.querySelector<HTMLElement>('.acu-desk-pet')!,
     img: () => el.querySelector<HTMLImageElement>('.acu-desk-pet__img'),
@@ -58,9 +59,9 @@ function mountPet(appearance: DeskPetAppearance_ACU) {
   };
 }
 
-function pointer(target: HTMLElement, type: string): void {
+function pointer(target: HTMLElement, type: string, x = 20, y = 20): void {
   const event = new Event(type, { bubbles: true, cancelable: true });
-  Object.assign(event, { pointerId: 1, pointerType: 'touch', button: 0, clientX: 20, clientY: 20 });
+  Object.assign(event, { pointerId: 1, pointerType: 'touch', button: 0, clientX: x, clientY: y });
   target.dispatchEvent(event);
 }
 
@@ -162,6 +163,78 @@ describe('DeskPet 外观', () => {
     expect(awake.img()!.className).toMatch(/pose-idle/);
   });
 
+  it('自定义替换图片后，单击请求菜单且保留害羞反应', async () => {
+    const requests: Array<'pointer' | 'keyboard'> = [];
+    const pet = mountPet(petAppearance(appearance => {
+      appearance.images.idle = 'https://img.test/custom-idle.png';
+      appearance.motion.reactionMs.shy = 300;
+    }), source => requests.push(source));
+
+    expect(pet.root.title).toContain('点一下显示动作菜单');
+    expect(pet.img()!.getAttribute('src')).toBe('https://img.test/custom-idle.png');
+
+    pointer(pet.root, 'pointerdown');
+    pointer(pet.root, 'pointerup');
+    await nextTick();
+    expect(requests).toEqual(['pointer']);
+    expect(pet.img()!.className).toMatch(/pose-shy/);
+    expect(pet.img()!.getAttribute('src')).toMatch(/shy/);
+  });
+
+  it('键盘 Enter 与 Space 请求键盘菜单；三连点怕痒、六连点生气不被菜单截断', async () => {
+    const requests: Array<'pointer' | 'keyboard'> = [];
+    const pet = mountPet(petAppearance(appearance => {
+      appearance.motion.reactionMs.shy = 0;
+      appearance.motion.reactionMs.tickle = 0;
+      appearance.motion.reactionMs.angry = 0;
+    }), source => requests.push(source));
+
+    pet.root.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
+    pet.root.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true, cancelable: true }));
+    await nextTick();
+    expect(requests).toEqual(['keyboard', 'keyboard']);
+
+    const tap = () => {
+      pointer(pet.root, 'pointerdown');
+      pointer(pet.root, 'pointerup');
+    };
+    tap();
+    tap();
+    tap();
+    await nextTick();
+    expect(pet.img()!.className).toMatch(/pose-tickle/);
+
+    tap();
+    tap();
+    tap();
+    await nextTick();
+    expect(pet.img()!.className).toMatch(/pose-angry/);
+  });
+
+  it('超过窗口、拖动、长按或指针取消不会请求菜单', async () => {
+    const requests: Array<'pointer' | 'keyboard'> = [];
+    const pet = mountPet(petAppearance(), () => requests.push('pointer'));
+
+    pointer(pet.root, 'pointerdown');
+    pointer(pet.root, 'pointermove', 50);
+    pointer(pet.root, 'pointerup');
+    await nextTick();
+    expect(requests).toHaveLength(0);
+
+    pointer(pet.root, 'pointerdown');
+    await advance(550);
+    pointer(pet.root, 'pointerup');
+    await nextTick();
+    expect(requests).toHaveLength(0);
+
+    pointer(pet.root, 'pointerdown');
+    pointer(pet.root, 'pointercancel');
+    pointer(pet.root, 'pointerdown');
+    pointer(pet.root, 'pointerup');
+    await nextTick();
+    expect(requests).toHaveLength(1);
+  });
+
   it('待机小动作按权重抽取、按设置的间隔触发', async () => {
     const pet = mountPet(petAppearance(appearance => {
       appearance.motion.idleActionWeights.eat = 5;
@@ -172,6 +245,99 @@ describe('DeskPet 外观', () => {
     expect(pet.img()!.className).toMatch(/pose-idle/);
     await advance(1);
     expect(pet.img()!.className).toMatch(/pose-eat-a/);
+  });
+});
+
+describe('DeskPetActionMenu 动作菜单', () => {
+  function mountMenu(props: Record<string, unknown> = {}) {
+    const closeEvents: boolean[] = [];
+    const openEvents: string[] = [];
+    const el = mountComponent(DeskPetActionMenu, {
+      anchor: { x: 500, y: 300, width: 88, height: 88 },
+      viewportWidth: 1024,
+      viewportHeight: 768,
+      autoFocus: false,
+      onClose: (restoreFocus: boolean) => closeEvents.push(restoreFocus),
+      onOpenDashboard: () => openEvents.push('dashboard'),
+      ...props,
+    });
+    return {
+      menu: el.querySelector<HTMLElement>('.acu-desk-pet-menu')!,
+      closeEvents,
+      openEvents,
+    };
+  }
+
+  it('点击打开仪表盘发出动作并请求收起，键盘打开时聚焦动作按钮', async () => {
+    const actionMenu = mountMenu({ autoFocus: true });
+    await nextTick();
+    expect(actionMenu.menu.getAttribute('role')).toBe('menu');
+    expect(document.activeElement).toBe(actionMenu.menu.querySelector('.acu-desk-pet-menu__action'));
+
+    actionMenu.menu.querySelector<HTMLButtonElement>('.acu-desk-pet-menu__action')!.click();
+    await nextTick();
+    expect(actionMenu.openEvents).toEqual(['dashboard']);
+    expect(actionMenu.closeEvents).toEqual([false]);
+  });
+
+  it('关闭按钮、Escape 与外部点击都请求收起', async () => {
+    const closeButton = mountMenu();
+    closeButton.menu.querySelector<HTMLButtonElement>('.acu-desk-pet-menu__close')!.click();
+    await nextTick();
+    expect(closeButton.closeEvents).toEqual([true]);
+
+    const escaped = mountMenu();
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    await nextTick();
+    expect(escaped.closeEvents).toEqual([true]);
+
+    const outside = mountMenu();
+    document.body.dispatchEvent(new Event('pointerdown', { bubbles: true }));
+    await nextTick();
+    expect(outside.closeEvents).toEqual([false]);
+  });
+
+  it('方向键循环菜单项，Home/End 定位首尾，Escape 阻止向外传播', async () => {
+    const { menu, closeEvents } = mountMenu({ autoFocus: true });
+    await nextTick();
+    const action = menu.querySelector<HTMLButtonElement>('.acu-desk-pet-menu__action')!;
+    const close = menu.querySelector<HTMLButtonElement>('.acu-desk-pet-menu__close')!;
+    const key = (value: string) => {
+      const event = new KeyboardEvent('keydown', { key: value, bubbles: true, cancelable: true });
+      document.activeElement!.dispatchEvent(event);
+      expect(event.defaultPrevented).toBe(true);
+    };
+    key('ArrowDown');
+    expect(document.activeElement).toBe(close);
+    key('ArrowRight');
+    expect(document.activeElement).toBe(action);
+    key('ArrowUp');
+    expect(document.activeElement).toBe(close);
+    key('Home');
+    expect(document.activeElement).toBe(action);
+    key('End');
+    expect(document.activeElement).toBe(close);
+    const bubbled = vi.fn();
+    document.body.addEventListener('keydown', bubbled);
+    try {
+      key('Escape');
+      expect(closeEvents).toEqual([true]);
+      expect(bubbled).not.toHaveBeenCalled();
+    } finally {
+      document.body.removeEventListener('keydown', bubbled);
+    }
+  });
+
+  it('右侧放不下时依序换位，视口边缘最终夹进屏幕', () => {
+    const leftEdge = mountMenu({ anchor: { x: 8, y: 300, width: 20, height: 20 }, viewportWidth: 1024, viewportHeight: 768 });
+    expect(leftEdge.menu.style.transform).toBe('translate3d(38px, 292px, 0)');
+
+    const rightEdge = mountMenu({ anchor: { x: 1000, y: -40, width: 20, height: 20 }, viewportWidth: 1024, viewportHeight: 768 });
+    expect(rightEdge.menu.style.transform).toBe('translate3d(864px, 8px, 0)');
+
+    const narrow = mountMenu({ anchor: { x: 40, y: 100, width: 20, height: 20 }, viewportWidth: 100, viewportHeight: 300 });
+    expect(narrow.menu.style.width).toBe('84px');
+    expect(narrow.menu.style.transform).toBe('translate3d(8px, 54px, 0)');
   });
 });
 
